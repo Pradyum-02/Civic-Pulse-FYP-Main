@@ -1,3 +1,5 @@
+// this app is urrently in devloping stage and this is the code only for the frontend and not a functional prototype
+
 import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
