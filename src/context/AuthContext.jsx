@@ -1,19 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-/**
- * Auth abstraction layer.
- * Today it uses local frontend state only. When the backend exists, replace the
- * bodies of login/register/logout/getCurrentUser with api.post("/auth/...") calls.
- * UI components must only use this hook, never the storage details below.
- */
-
 const STORAGE_KEY = "civicpulse.session";
 const AuthContext = createContext(null);
 
 const mockAccounts = {
-  citizen: { id: "u1", name: "Pradyum Meshram", email: "citizen@civicpulse.app", role: "citizen" },
-  officer: { id: "o1", name: "Rahul Kulkarni", email: "officer@civicpulse.app", role: "officer" },
-  admin: { id: "u4", name: "System Admin", email: "admin@civicpulse.app", role: "admin" },
+  citizen: { id: "u1", name: "Citizen User", phoneNumber: "+919876543210", role: "citizen" },
+  officer: { id: "o1", name: "Field Officer", phoneNumber: "+919812345678", role: "officer" },
+  admin: { id: "a1", name: "System Admin", phoneNumber: "+919900000001", role: "admin" },
 };
 
 export function AuthProvider({ children }) {
@@ -25,7 +18,7 @@ export function AuthProvider({ children }) {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) setUser(JSON.parse(raw));
     } catch {
-      /* ignore corrupted session */
+      // Ignore corrupted session values.
     }
     setLoading(false);
   }, []);
@@ -37,9 +30,13 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(
-    async ({ email, role = "citizen" }) => {
+    async ({ phoneNumber, role = "citizen" }) => {
       const base = mockAccounts[role] || mockAccounts.citizen;
-      const next = { ...base, email: email || base.email };
+      const next = {
+        ...base,
+        phoneNumber: phoneNumber || base.phoneNumber,
+        role,
+      };
       persist(next);
       return next;
     },
@@ -47,8 +44,13 @@ export function AuthProvider({ children }) {
   );
 
   const register = useCallback(
-    async ({ name, email, role = "citizen" }) => {
-      const next = { id: `u-${Date.now()}`, name: name || "New User", email, role };
+    async ({ phoneNumber, role = "citizen" }) => {
+      const next = {
+        id: `u-${Date.now()}`,
+        name: "New CivicPulse User",
+        phoneNumber: phoneNumber || "+919000000000",
+        role,
+      };
       persist(next);
       return next;
     },

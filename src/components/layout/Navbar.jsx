@@ -1,6 +1,5 @@
 import { Menu } from "lucide-react";
 import Logo from "./Logo";
-import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar({ onOpenMenu, title }) {
   return (
@@ -19,7 +18,6 @@ export default function Navbar({ onOpenMenu, title }) {
         </span>
         <span className="hidden text-sm font-medium text-muted-foreground lg:block">{title}</span>
       </div>
-      <ThemeToggle />
     </header>
   );
 }

@@ -1,60 +1,142 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useDocumentTitle from "@/hooks/useDocumentTitle";
 import AuthCard from "@/components/layout/AuthCard";
-import Button from "@/components/common/Button";
-import { Input } from "@/components/common/Field";
+import MobileLogin from "@/components/auth/MobileLogin";
+import OTPVerification from "@/components/auth/OTPVerification";
 import { useAuth } from "@/context/AuthContext";
+import { normalizePhoneNumber, resendOTP, sendOTP, verifyOTP } from "@/services/authService";
+
+const RESEND_SECONDS = 30;
 
 function RegisterPage() {
-  useDocumentTitle("Create an account — CivicPulse");
+  useDocumentTitle("Create account — CivicPulse");
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirm: "" });
-  const [errors, setErrors] = useState({});
+  const [phoneNumber, setPhoneNumber] = useState("+91");
+  const [otp, setOtp] = useState("");
+  const [phase, setPhase] = useState("phone");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendSeconds, setResendSeconds] = useState(0);
 
-  const set = (patch) => setForm((f) => ({ ...f, ...patch }));
+  useEffect(() => {
+    if (resendSeconds <= 0) return undefined;
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    const next = {};
-    if (!form.name.trim()) next.name = "Full name is required.";
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) next.email = "Enter a valid email address.";
-    if (form.password.length < 6) next.password = "Use at least 6 characters.";
-    if (form.confirm !== form.password) next.confirm = "Passwords do not match.";
-    setErrors(next);
-    if (Object.keys(next).length) return;
+    const timer = window.setInterval(() => {
+      setResendSeconds((current) => (current > 0 ? current - 1 : 0));
+    }, 1000);
 
+    return () => window.clearInterval(timer);
+  }, [resendSeconds]);
+
+  const handleSendOtp = async (event) => {
+    event.preventDefault();
+    const normalized = normalizePhoneNumber(phoneNumber);
+
+    if (!/^\+91\d{10}$/.test(normalized)) {
+      setError("Enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    setError("");
     setLoading(true);
-    await register({ name: form.name, email: form.email, role: "citizen" });
-    setLoading(false);
-    navigate("/citizen/dashboard");
+
+    try {
+      await sendOTP(normalized);
+      setPhase("otp");
+      setOtp("");
+      setResendSeconds(RESEND_SECONDS);
+    } catch {
+      setError("Unable to send OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp.length !== 6) {
+      setError("Enter the 6-digit OTP.");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+
+    try {
+      await verifyOTP(phoneNumber, otp);
+      await register({ phoneNumber, role: "citizen" });
+      navigate("/citizen/dashboard");
+    } catch {
+      setError("The OTP is invalid. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendSeconds > 0) return;
+
+    setError("");
+    setIsResending(true);
+
+    try {
+      await resendOTP(phoneNumber);
+      setResendSeconds(RESEND_SECONDS);
+      setOtp("");
+    } catch {
+      setError("Unable to resend OTP. Please try again.");
+    } finally {
+      setIsResending(false);
+    }
   };
 
   return (
     <AuthCard
-      title="Create your citizen account"
-      description="Report issues in your ward and follow them until they are resolved."
+      title={phase === "phone" ? "Create your account" : "Verify your mobile number"}
+      description={
+        phase === "phone"
+          ? "Register with your mobile number for secure access."
+          : "Enter the one-time code to complete registration."
+      }
       footer={
         <>
-          Already registered?{" "}
+          Already registered? {" "}
           <Link to="/login" className="font-medium text-primary hover:underline">
             Log in
           </Link>
         </>
       }
     >
-      <form onSubmit={onSubmit} className="space-y-4" noValidate>
-        <Input id="name" label="Full name" required value={form.name} onChange={(e) => set({ name: e.target.value })} error={errors.name} />
-        <Input id="email" type="email" label="Email" required autoComplete="email" value={form.email} onChange={(e) => set({ email: e.target.value })} error={errors.email} />
-        <Input id="phone" type="tel" label="Phone number" value={form.phone} onChange={(e) => set({ phone: e.target.value })} hint="Optional, used for field updates." />
-        <Input id="password" type="password" label="Password" required autoComplete="new-password" value={form.password} onChange={(e) => set({ password: e.target.value })} error={errors.password} />
-        <Input id="confirm" type="password" label="Confirm password" required autoComplete="new-password" value={form.confirm} onChange={(e) => set({ confirm: e.target.value })} error={errors.confirm} />
-        <Button type="submit" className="w-full" loading={loading}>
-          Create account
-        </Button>
-      </form>
+      {phase === "phone" ? (
+        <MobileLogin
+          phoneNumber={phoneNumber}
+          onPhoneChange={setPhoneNumber}
+          onSubmit={handleSendOtp}
+          loading={loading}
+          error={error}
+          submitLabel="Send OTP"
+        />
+      ) : (
+        <OTPVerification
+          phoneNumber={phoneNumber}
+          otp={otp}
+          onOtpChange={setOtp}
+          onVerify={handleVerifyOtp}
+          onResend={handleResendOtp}
+          onChangeMobile={() => {
+            setPhase("phone");
+            setOtp("");
+            setError("");
+            setResendSeconds(0);
+          }}
+          loading={loading}
+          error={error}
+          resendSeconds={resendSeconds}
+          isResending={isResending}
+        />
+      )}
     </AuthCard>
   );
 }

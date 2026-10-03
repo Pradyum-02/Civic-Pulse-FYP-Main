@@ -1,13 +1,15 @@
 import { Link } from "react-router-dom";
-import { Activity } from "lucide-react";
 
-export default function Logo({ to = "/" }) {
+export default function Logo({ to = "/", className = "" }) {
   return (
-    <Link to={to} className="flex items-center gap-2 font-semibold text-foreground">
-      <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-        <Activity className="h-4 w-4" aria-hidden="true" />
-      </span>
-      <span className="text-[15px] tracking-tight">CivicPulse</span>
+    <Link to={to} className={`flex items-center gap-2 font-semibold text-foreground ${className}`}>
+      <img
+        src="/logo-placeholder.png"
+        alt="CivicPulse Logo"
+        className="h-9 w-auto object-contain"
+        draggable={false}
+      />
+      <span className="text-lg font-extrabold tracking-[-0.06em] text-foreground">CivicPulse</span>
     </Link>
   );
 }

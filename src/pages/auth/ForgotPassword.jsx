@@ -1,36 +1,48 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import useDocumentTitle from "@/hooks/useDocumentTitle";
-import { MailCheck } from "lucide-react";
 import AuthCard from "@/components/layout/AuthCard";
-import Button from "@/components/common/Button";
-import { Input } from "@/components/common/Field";
+import MobileLogin from "@/components/auth/MobileLogin";
+import { normalizePhoneNumber, sendOTP } from "@/services/authService";
+import { ShieldCheck } from "lucide-react";
 
 function ForgotPasswordPage() {
-  useDocumentTitle("Reset password — CivicPulse");
-  const [email, setEmail] = useState("");
+  useDocumentTitle("Recover access — CivicPulse");
+  const [phoneNumber, setPhoneNumber] = useState("+91");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      setError("Enter a valid email address.");
+  const onSubmit = async (event) => {
+    event.preventDefault();
+    const normalized = normalizePhoneNumber(phoneNumber);
+
+    if (!/^\+91\d{10}$/.test(normalized)) {
+      setError("Enter a valid 10-digit mobile number.");
       return;
     }
+
     setError("");
     setLoading(true);
-    window.setTimeout(() => {
-      setLoading(false);
+
+    try {
+      await sendOTP(normalized);
       setSent(true);
-    }, 700);
+    } catch {
+      setError("Unable to send OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <AuthCard
-      title="Forgot your password?"
-      description="Enter your email and we'll send reset instructions."
+      title={sent ? "Recovery OTP sent" : "Recover access"}
+      description={
+        sent
+          ? "Use the OTP sent to your mobile number to continue."
+          : "Enter your registered phone number to receive a secure OTP."
+      }
       footer={
         <Link to="/login" className="font-medium text-primary hover:underline">
           Back to login
@@ -39,28 +51,21 @@ function ForgotPasswordPage() {
     >
       {sent ? (
         <div className="rounded-xl border border-border bg-secondary/50 p-5 text-center" role="status">
-          <MailCheck className="mx-auto h-6 w-6 text-primary" aria-hidden="true" />
-          <p className="mt-3 text-sm font-medium text-foreground">Check your inbox</p>
+          <ShieldCheck className="mx-auto h-6 w-6 text-primary" aria-hidden="true" />
+          <p className="mt-3 text-sm font-medium text-foreground">OTP sent successfully</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            If an account exists for {email}, reset instructions have been sent.
+            We have sent a secure code to {phoneNumber}. Please use it to continue.
           </p>
         </div>
       ) : (
-        <form onSubmit={onSubmit} className="space-y-4" noValidate>
-          <Input
-            id="email"
-            type="email"
-            label="Email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={error}
-            placeholder="you@example.com"
-          />
-          <Button type="submit" className="w-full" loading={loading}>
-            Send reset link
-          </Button>
-        </form>
+        <MobileLogin
+          phoneNumber={phoneNumber}
+          onPhoneChange={setPhoneNumber}
+          onSubmit={onSubmit}
+          loading={loading}
+          error={error}
+          submitLabel="Send OTP"
+        />
       )}
     </AuthCard>
   );
