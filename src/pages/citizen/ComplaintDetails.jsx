@@ -59,7 +59,9 @@ function ComplaintDetails() {
         <div className="space-y-5 lg:col-span-2">
           <Card>
             <CardHeader title="Description" />
-            <p className="text-sm leading-relaxed text-muted-foreground">{complaint.description}</p>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {complaint.description || "No description provided."}
+            </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Badge tone="outline">{categoryLabel(complaint.category)}</Badge>
               <Badge tone="outline">{complaint.department}</Badge>

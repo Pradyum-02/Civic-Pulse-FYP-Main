@@ -34,10 +34,43 @@ const civicBenefits = [
   { icon: CheckCircle2, title: "Visible civic impact", description: "Track progress from first report to resolved action and improved public services." },
 ];
 
-const stats = [
-  { value: "48 hrs", label: "average review cycle" },
-  { value: "12k+", label: "issues tracked" },
-  { value: "92%", label: "resolution visibility" },
+const platformMetrics = [
+  {
+    value: "3",
+    label: "CORE WORKFLOWS",
+    detail: "Report · Track · Manage",
+  },
+  {
+    value: "3",
+    label: "ACCESS ROLES",
+    detail: "Citizen · Officer · Admin",
+  },
+  {
+    value: "1",
+    label: "CIVIC PLATFORM",
+    detail: "One interface for issue reporting and management",
+  },
+];
+
+const capabilities = [
+  {
+    number: "01",
+    icon: ClipboardList,
+    title: "Report an issue",
+    description: "Describe a civic issue with a category, details, and an optional photo.",
+  },
+  {
+    number: "02",
+    icon: MapPin,
+    title: "Add location context",
+    description: "Set an address and map location to show where the issue was reported.",
+  },
+  {
+    number: "03",
+    icon: Building2,
+    title: "Review complaint status",
+    description: "Explore complaint status and management views for citizens and administrators.",
+  },
 ];
 
 function LandingPage() {
@@ -74,15 +107,40 @@ function LandingPage() {
             </div>
           </div>
 
-          <div className="mt-10 grid max-w-md gap-3 sm:grid-cols-3">
-            {stats.map(({ value, label }) => (
-              <div key={label} className="rounded-2xl border border-white/15 bg-white/10 p-4 text-white shadow-sm backdrop-blur-sm">
-                <p className="text-2xl font-semibold text-white">{value}</p>
-                <p className="mt-2 text-xs uppercase tracking-[0.12em] text-white/70">{label}</p>
-              </div>
+          <div className="mt-10 grid max-w-4xl gap-3 sm:grid-cols-3">
+            {platformMetrics.map(({ value, label, detail }) => (
+              <article key={label} className="rounded-2xl border border-white/20 bg-white/10 p-5 text-white shadow-sm backdrop-blur-sm">
+                <p className="text-4xl font-semibold tracking-tight text-white">{value}</p>
+                <h2 className="mt-3 text-[11px] font-bold tracking-[0.16em] text-[#f5ca52]">{label}</h2>
+                <p className="mt-1 text-sm leading-5 text-white/80">{detail}</p>
+              </article>
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-14">
+        <div className="max-w-xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">CivicPulse capabilities</p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            A preview of the tools available in this prototype.
+          </h2>
+        </div>
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          {capabilities.map(({ number, icon: Icon, title, description }) => (
+            <article key={number} className="card-surface p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold tracking-[0.16em] text-primary">{number}</span>
+                <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
+              </div>
+              <h3 className="mt-3 text-base font-semibold text-foreground">{title}</h3>
+              <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
+            </article>
+          ))}
+        </div>
+        <p className="mt-3 text-xs leading-5 text-muted-foreground">
+          Prototype notice: submissions are not saved, and complaint records shown elsewhere in the app are sample data.
+        </p>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16 lg:py-20">

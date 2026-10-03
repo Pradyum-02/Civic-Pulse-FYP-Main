@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import useDocumentTitle from "@/hooks/useDocumentTitle";
 import { CheckCircle2, Send } from "lucide-react";
 import PageHeader from "@/components/common/PageHeader";
@@ -18,7 +18,6 @@ const categoryOptions = [
 
 function ReportPage() {
   useDocumentTitle("Report an Issue — CivicPulse");
-  const navigate = useNavigate();
   const [form, setForm] = useState({ category: "", title: "", description: "" });
   const [image, setImage] = useState(null);
   const [ai, setAi] = useState(null);
@@ -47,9 +46,7 @@ function ReportPage() {
   const onSubmit = (e) => {
     e.preventDefault();
     const next = {};
-    if (!form.category) next.category = "Choose an issue category.";
     if (form.title.trim().length < 5) next.title = "Add a short, descriptive title.";
-    if (form.description.trim().length < 20) next.description = "Describe the issue in at least 20 characters.";
     if (!location.address.trim()) next.address = "Add an address or landmark.";
     setErrors(next);
     if (Object.keys(next).length) return;
@@ -96,7 +93,7 @@ function ReportPage() {
     <>
       <PageHeader
         title="Report a civic issue"
-        description="Add details, a photo and the exact location so the right department can act."
+        description="Add a title and location. Category, description, and photo are optional."
       />
 
       <form onSubmit={onSubmit} className="grid gap-5 lg:grid-cols-3" noValidate>
@@ -106,12 +103,10 @@ function ReportPage() {
             <div className="space-y-4">
               <Select
                 id="category"
-                label="Issue category"
-                required
+                label="Category (optional)"
                 value={form.category}
                 onChange={(e) => set({ category: e.target.value })}
                 options={categoryOptions}
-                error={errors.category}
               />
               <Input
                 id="title"
@@ -124,12 +119,10 @@ function ReportPage() {
               />
               <Textarea
                 id="description"
-                label="Description"
-                required
-                placeholder="Describe the issue, how long it has existed and any safety risk."
+                label="Description (optional)"
+                placeholder="Add a few details"
                 value={form.description}
                 onChange={(e) => set({ description: e.target.value })}
-                error={errors.description}
               />
             </div>
           </Card>
@@ -152,7 +145,7 @@ function ReportPage() {
           <Card className="lg:sticky lg:top-24">
             <CardHeader title="Submit" description="Review your details before sending." />
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>Category: {CATEGORIES.find((c) => c.id === form.category)?.label || "Not selected"}</li>
+              <li>Category: {CATEGORIES.find((c) => c.id === form.category)?.label || "Optional"}</li>
               <li>Photo: {image ? "Attached" : "Not attached"}</li>
               <li>Location: {location.address || "Not set"}</li>
             </ul>

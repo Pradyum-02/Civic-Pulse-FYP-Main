@@ -186,4 +186,4 @@ export const complaints = [
 
 export const findComplaint = (id) => complaints.find((c) => c.id === id) || null;
 export const categoryLabel = (id) =>
-  CATEGORIES.find((c) => c.id === id)?.label || "Other";
+  CATEGORIES.find((c) => c.id === id)?.label || (id ? "Other" : "Not specified");
